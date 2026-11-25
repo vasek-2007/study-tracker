@@ -1,0 +1,49 @@
+name: telegram-inbox
+
+# Раз в ~5 минут забирает новые сообщения бота и дописывает их в inbox.md.
+# Токен бота и id чата хранятся в секретах репозитория, в коде их нет.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: telegram-inbox
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch new Telegram messages
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          OFFSET=$(cat .tg_offset 2>/dev/null || echo 0)
+          RES=$(curl -s "https://api.telegram.org/bot${TOKEN}/getUpdates?offset=${OFFSET}&timeout=0")
+          echo "$RES" | jq -e '.ok' >/dev/null
+          # Только сообщения из твоего чата, остальные отбрасываются.
+          echo "$RES" | jq -r --arg chat "$CHAT" '
+            .result[]
+            | select((.message.chat.id | tostring) == $chat)
+            | select(.message.text != null)
+            | "- [" + (.message.date | todate) + " UTC] " + (.message.text | gsub("[\r\n]+"; " "))
+          ' >> inbox.md
+          LAST=$(echo "$RES" | jq '[.result[].update_id] | max // empty')
+          if [ -n "$LAST" ]; then echo $((LAST + 1)) > .tg_offset; fi
+      - name: Commit changes
+        run: |
+          git config user.name "telegram-inbox"
+          git config user.email "actions@users.noreply.github.com"
+          git add inbox.md .tg_offset 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "inbox: new Telegram messages"
+            git pull --rebase origin main
+            git push
+          fi
