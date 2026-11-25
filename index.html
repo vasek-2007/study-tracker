@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Учёба: трекер</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1f2328;--mut:#6b7280;--line:#e5e2d9;--acc:#4f46e5;--acc2:#eef0ff;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}
+@media(prefers-color-scheme:dark){:root{--bg:#16171a;--card:#202226;--ink:#ececec;--mut:#9aa0a8;--line:#33363c;--acc:#818cf8;--acc2:#262a4a;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 12px}h2{font-size:16px;margin:0 0 10px}
+nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+nav button{white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;border-radius:999px;cursor:pointer;font:inherit}
+nav button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0}
+textarea{width:100%;min-height:150px;font-family:ui-monospace,monospace;font-size:13px}
+button.b{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit}
+button.g{background:transparent;color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:4px 9px;cursor:pointer;font:inherit}
+.item{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.item .t{flex:1;min-width:0}.item .s{color:var(--mut);font-size:13px}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--acc2);color:var(--acc);white-space:nowrap}
+.tag.bad{background:#fee2e2;color:var(--bad)}.tag.warn{background:#fef3c7;color:var(--warn)}.tag.ok{background:#dcfce7;color:var(--ok)}
+.done .t{text-decoration:line-through;opacity:.5}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:var(--ok)}
+.empty{color:var(--mut);padding:8px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--acc2);border-radius:12px;padding:12px}.stat b{font-size:24px;display:block}
+.mut{color:var(--mut);font-size:13px}
+
+.calhead{padding:12px}.caltop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.caltitle{font-size:20px;font-weight:700;text-transform:capitalize;min-width:150px;text-align:center}
+.round{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:20px;cursor:pointer;line-height:1}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chip{white-space:nowrap;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.legend{display:flex;gap:14px;margin-top:8px;font-size:13px;color:var(--mut)}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.calwrap{padding:10px}.calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.dow{text-align:center;font-size:12px;color:var(--mut);padding:2px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+.cell{min-height:96px;border:1px solid var(--line);border-radius:10px;padding:4px;cursor:pointer;background:var(--card);overflow:hidden;transition:border-color .15s}
+.cell:hover{border-color:var(--acc)}.cell.empty{border:0;background:transparent;cursor:default}.cell.we{background:var(--bg)}
+.cell.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc2)}
+.dn{font-size:12px;color:var(--mut);width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;margin-bottom:2px}
+.cell.today .dn{background:var(--acc);color:#fff;font-weight:700}
+.les{font-size:11px;line-height:1.25;padding:2px 4px;border-radius:5px;margin-top:2px;border-left:3px solid;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.les b{font-weight:600;opacity:.75}
+.l-went{background:rgba(34,197,94,.16);border-color:#22c55e}.l-missed{background:rgba(239,68,68,.16);border-color:#ef4444}.ro .seg,.ro .formcard,.ro details.add,.ro details.card,.ro .qa,.ro .item .g,.ro .lcard .g,.ro .item input,.ro .item select{display:none!important}.exb{font-size:9px;font-weight:700;background:#f59e0b;color:#fff;border-radius:4px;padding:0 4px;display:inline-block;margin:0 0 2px;letter-spacing:.03em}.exbox{background:rgba(245,158,11,.2);border:1px solid #f59e0b;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-weight:600}.l-sick{background:rgba(59,130,246,.16);border-color:#3b82f6}.seg .s-sick.on{background:#3b82f6;color:#fff}.l-none{background:rgba(156,163,175,.16);border-color:#9ca3af}
+.lcard{display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;border-left:4px solid;margin-bottom:8px;flex-wrap:wrap}
+.lcard .t{flex:1;min-width:140px}.ltime{display:flex;flex-direction:column;font-size:13px;color:var(--mut);min-width:44px}.ltime b{color:var(--ink);font-size:15px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}.seg button{border:0;background:var(--card);color:var(--ink);padding:7px 12px;font:inherit;cursor:pointer}
+.seg .s-went.on{background:#22c55e;color:#fff}.seg .s-missed.on{background:#ef4444;color:#fff}
+details.add summary{cursor:pointer;color:var(--acc);margin-top:6px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.scard{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}.sn{font-size:13px;color:var(--mut);min-height:34px}
+.sp{font-size:28px;font-weight:700;margin:2px 0}.sc{display:flex;gap:12px;font-size:13px;margin-top:6px}
+@media(max-width:560px){.cell{min-height:70px;padding:2px}.les{font-size:10px;padding:1px 2px}.les b{display:none}.caltitle{font-size:17px;min-width:110px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🎓 Учёба</h1>
+<nav id="nav"></nav>
+<div id="app"></div>
+</div>
+<script type="application/json" id="state">{"subjects": [{"id": "ohsudba", "name": "Системы управления базами данных", "limit": 0}, {"id": "y1ocf6b", "name": "Финансовая математика и ее приложения", "limit": 0, "plan": "all"}, {"id": "dv71jfy", "name": "Теория вероятностей и математическая статистика", "limit": 0}, {"id": "6nzpl8n", "name": "Машинное обучение", "limit": 0}, {"id": "o4044pr", "name": "Программная инженерия", "limit": 0}, {"id": "xl6gq6i", "name": "Современные технологии объектно-ориентированного программирования", "limit": 0, "plan": "n", "n": 3}, {"id": "fihipsi", "name": "Сетевые системы и приложения", "limit": 0, "plan": "all"}, {"id": "a98336n", "name": "Основы информационной безопасности", "limit": 0}, {"id": "6s611vm", "name": "Разработка моделей бизнес-процессов", "limit": 0}, {"id": "4wk52vz", "name": "Проектный практикум", "limit": 0}, {"id": "br4r89w", "name": "Практикум по программированию", "limit": 0, "plan": "n", "n": 2}, {"id": "6274pvf", "name": "Иностранный язык", "limit": 0, "plan": "all"}], "events": [{"id": "8fe80vw", "type": "credit", "subj": "4wk52vz", "date": "2026-12-21", "time": "14:00", "note": "ауд. 2117", "done": false}, {"id": "hh5ypx4", "type": "credit", "subj": "o4044pr", "date": "2026-12-22", "time": "11:50", "note": "ауд. 3202", "done": false}, {"id": "woug54k", "type": "credit", "subj": "6s611vm", "date": "2026-12-26", "time": "11:50", "note": "онлайн", "done": false}, {"id": "b9uvhme", "type": "credit", "subj": "br4r89w", "date": "2026-12-09", "time": "08:30", "note": "ауд. 3211", "done": false}, {"id": "v16o52e", "type": "credit", "subj": "ohsudba", "date": "2026-12-28", "time": "14:00", "note": "ауд. 1502", "done": false}, {"id": "3pesujp", "type": "credit", "subj": "6274pvf", "date": "2026-12-25", "time": "14:00", "note": "ауд. 2531", "done": false}], "hw": [], "abs": [], "lessons": [{"id": "875jtpd", "subj": "ohsudba", "date": "2026-12-14", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 1515", "status": ""}, {"id": "nmpummc", "subj": "ohsudba", "date": "2026-12-14", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 1502", "status": ""}, {"id": "p4j62lr", "subj": "y1ocf6b", "date": "2026-12-14", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 1512", "status": ""}, {"id": "0x3cmwf", "subj": "ohsudba", "date": "2026-12-14", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 1502", "status": ""}, {"id": "tc2ljmz", "subj": "dv71jfy", "date": "2026-12-15", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 3805", "status": ""}, {"id": "mk4s9l7", "subj": "6nzpl8n", "date": "2026-12-15", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3212", "status": ""}, {"id": "a9tqonr", "subj": "o4044pr", "date": "2026-12-15", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3202", "status": ""}, {"id": "uk8zn6g", "subj": "dv71jfy", "date": "2026-12-15", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 3204", "status": ""}, {"id": "2q38lcs", "subj": "dv71jfy", "date": "2026-12-16", "start": "08:30", "end": "10:00", "place": "Практика · ауд. 3211", "status": ""}, {"id": "2shom4x", "subj": "xl6gq6i", "date": "2026-12-16", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3402", "status": ""}, {"id": "y78p4q2", "subj": "fihipsi", "date": "2026-12-16", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3310", "status": ""}, {"id": "wodr2vm", "subj": "fihipsi", "date": "2026-12-16", "start": "14:00", "end": "15:30", "place": "Лекция · ауд. 3305", "status": ""}, {"id": "q94mzc2", "subj": "a98336n", "date": "2026-12-18", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3211", "status": ""}, {"id": "ez4gsuc", "subj": "a98336n", "date": "2026-12-18", "start": "11:50", "end": "13:20", "place": "Лекция · ауд. 2229", "status": ""}, {"id": "p1vfohn", "subj": "6s611vm", "date": "2026-12-19", "start": "10:10", "end": "11:40", "place": "Практика · онлайн", "status": ""}, {"id": "gaikwgk", "subj": "6s611vm", "date": "2026-12-19", "start": "11:50", "end": "13:20", "place": "Практика · онлайн", "status": ""}, {"id": "v9me2ds", "subj": "y1ocf6b", "date": "2026-12-21", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 1515", "status": ""}, {"id": "7hpf52m", "subj": "ohsudba", "date": "2026-12-21", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 1502", "status": ""}, {"id": "leup9k5", "subj": "y1ocf6b", "date": "2026-12-21", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 1512", "status": ""}, {"id": "rpqhiw1", "subj": "4wk52vz", "date": "2026-12-21", "start": "14:00", "end": "15:30", "place": "Семинар+зачёт · ауд. 2117", "status": ""}, {"id": "bb1lh8g", "subj": "o4044pr", "date": "2026-12-22", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 3805", "status": ""}, {"id": "5up4qas", "subj": "6nzpl8n", "date": "2026-12-22", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3212", "status": ""}, {"id": "k559qa3", "subj": "o4044pr", "date": "2026-12-22", "start": "11:50", "end": "13:20", "place": "Семинар+зачёт · ауд. 3202", "status": ""}, {"id": "38w0fep", "subj": "dv71jfy", "date": "2026-12-22", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 3204", "status": ""}, {"id": "xo0ajm5", "subj": "dv71jfy", "date": "2026-12-23", "start": "08:30", "end": "10:00", "place": "Практика · ауд. 3211", "status": ""}, {"id": "lxroj3j", "subj": "xl6gq6i", "date": "2026-12-23", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3402", "status": ""}, {"id": "rc985qu", "subj": "fihipsi", "date": "2026-12-23", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3310", "status": ""}, {"id": "1cdbixd", "subj": "xl6gq6i", "date": "2026-12-25", "start": "08:30", "end": "10:00", "place": "Практика · ауд. 3204", "status": ""}, {"id": "gwrxrzw", "subj": "a98336n", "date": "2026-12-25", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3211", "status": ""}, {"id": "105wzho", "subj": "fihipsi", "date": "2026-12-25", "start": "11:50", "end": "13:20", "place": "Лекция · ауд. 1414", "status": ""}, {"id": "k1qk8yf", "subj": "6s611vm", "date": "2026-12-26", "start": "10:10", "end": "11:40", "place": "Практика · онлайн", "status": ""}, {"id": "ltxvggn", "subj": "6s611vm", "date": "2026-12-26", "start": "11:50", "end": "13:20", "place": "Семинар+зачёт · онлайн", "status": ""}, {"id": "adnl936", "subj": "ohsudba", "date": "2026-11-30", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 1515", "status": ""}, {"id": "5dybw5w", "subj": "ohsudba", "date": "2026-11-30", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 1502", "status": ""}, {"id": "ftwvnn3", "subj": "y1ocf6b", "date": "2026-11-30", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 1512", "status": ""}, {"id": "m1dejdf", "subj": "ohsudba", "date": "2026-11-30", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 1502", "status": ""}, {"id": "vun6gzx", "subj": "dv71jfy", "date": "2026-12-01", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 3805", "status": ""}, {"id": "sxa5k7u", "subj": "6nzpl8n", "date": "2026-12-01", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3212", "status": ""}, {"id": "7almp8r", "subj": "o4044pr", "date": "2026-12-01", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3202", "status": ""}, {"id": "a72i2l6", "subj": "dv71jfy", "date": "2026-12-01", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 3204", "status": ""}, {"id": "9izj5zn", "subj": "dv71jfy", "date": "2026-12-02", "start": "08:30", "end": "10:00", "place": "Практика · ауд. 3211", "status": ""}, {"id": "du4rwln", "subj": "xl6gq6i", "date": "2026-12-02", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3402", "status": ""}, {"id": "dpgy4va", "subj": "fihipsi", "date": "2026-12-02", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3310", "status": ""}, {"id": "exxo3d4", "subj": "fihipsi", "date": "2026-12-02", "start": "14:00", "end": "15:30", "place": "Лекция · ауд. 3305", "status": ""}, {"id": "924cod9", "subj": "a98336n", "date": "2026-12-04", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3211", "status": ""}, {"id": "tj4uk0e", "subj": "a98336n", "date": "2026-12-04", "start": "11:50", "end": "13:20", "place": "Лекция · ауд. 2229", "status": ""}, {"id": "atxc82s", "subj": "6s611vm", "date": "2026-12-05", "start": "10:10", "end": "11:40", "place": "Практика · онлайн", "status": ""}, {"id": "125hr0u", "subj": "6s611vm", "date": "2026-12-05", "start": "11:50", "end": "13:20", "place": "Практика · онлайн", "status": ""}, {"id": "ay4e2p2", "subj": "y1ocf6b", "date": "2026-11-23", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 1515", "status": "missed"}, {"id": "qtppx7z", "subj": "ohsudba", "date": "2026-11-23", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 1502", "status": "missed"}, {"id": "q9ll8g4", "subj": "y1ocf6b", "date": "2026-11-23", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 1512", "status": "missed"}, {"id": "w9cwbov", "subj": "4wk52vz", "date": "2026-11-23", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 2117", "status": "missed"}, {"id": "ix39u5m", "subj": "o4044pr", "date": "2026-11-24", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 3805", "status": "sick"}, {"id": "u10gfo0", "subj": "6nzpl8n", "date": "2026-11-24", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3212", "status": "sick"}, {"id": "39jogg1", "subj": "o4044pr", "date": "2026-11-24", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3202", "status": "sick"}, {"id": "k3skzxd", "subj": "dv71jfy", "date": "2026-11-24", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 3204", "status": "sick"}, {"id": "r5pshf7", "subj": "br4r89w", "date": "2026-11-25", "start": "08:30", "end": "10:00", "place": "Практика · ауд. 3211", "status": "sick"}, {"id": "6rennmn", "subj": "xl6gq6i", "date": "2026-11-25", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3402", "status": "sick"}, {"id": "vlanqjw", "subj": "fihipsi", "date": "2026-11-25", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3310", "status": "sick"}, {"id": "a624fxw", "subj": "xl6gq6i", "date": "2026-11-25", "start": "14:00", "end": "15:30", "place": "Лекция · ауд. 3305", "status": "sick"}, {"id": "evzlcs8", "subj": "a98336n", "date": "2026-11-27", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3211", "status": "sick"}, {"id": "btqug9f", "subj": "6nzpl8n", "date": "2026-11-27", "start": "11:50", "end": "13:20", "place": "Лекция · ауд. 2229", "status": "sick"}, {"id": "9rw6171", "subj": "6s611vm", "date": "2026-11-28", "start": "10:10", "end": "11:40", "place": "Практика · онлайн", "status": "sick"}, {"id": "hc96dlq", "subj": "6s611vm", "date": "2026-11-28", "start": "11:50", "end": "13:20", "place": "Практика · онлайн", "status": "sick"}, {"id": "glnywhs", "subj": "y1ocf6b", "date": "2026-12-07", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 1515", "status": ""}, {"id": "qwdyq7e", "subj": "ohsudba", "date": "2026-12-07", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 1502", "status": ""}, {"id": "7a8fwss", "subj": "y1ocf6b", "date": "2026-12-07", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 1512", "status": ""}, {"id": "lyrw3sq", "subj": "4wk52vz", "date": "2026-12-07", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 2117", "status": ""}, {"id": "6exrvli", "subj": "o4044pr", "date": "2026-12-08", "start": "08:30", "end": "10:00", "place": "Лекция · ауд. 3805", "status": ""}, {"id": "8km1f0l", "subj": "6nzpl8n", "date": "2026-12-08", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3212", "status": ""}, {"id": "2tc6gvz", "subj": "o4044pr", "date": "2026-12-08", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3202", "status": ""}, {"id": "8q2w9yh", "subj": "dv71jfy", "date": "2026-12-08", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 3204", "status": ""}, {"id": "xt38u41", "subj": "br4r89w", "date": "2026-12-09", "start": "08:30", "end": "10:00", "place": "Семинар+зачёт · ауд. 3211", "status": ""}, {"id": "9jismyl", "subj": "xl6gq6i", "date": "2026-12-09", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3402", "status": ""}, {"id": "4hvk2sf", "subj": "fihipsi", "date": "2026-12-09", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3310", "status": ""}, {"id": "cig9jha", "subj": "xl6gq6i", "date": "2026-12-09", "start": "14:00", "end": "15:30", "place": "Лекция · ауд. 3305", "status": ""}, {"id": "3wpyofu", "subj": "a98336n", "date": "2026-12-11", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 3211", "status": ""}, {"id": "o2amib9", "subj": "6nzpl8n", "date": "2026-12-11", "start": "11:50", "end": "13:20", "place": "Лекция · ауд. 2229", "status": ""}, {"id": "4ylg6f9", "subj": "6s611vm", "date": "2026-12-12", "start": "10:10", "end": "11:40", "place": "Практика · онлайн", "status": ""}, {"id": "3rv7dbl", "subj": "6s611vm", "date": "2026-12-12", "start": "11:50", "end": "13:20", "place": "Практика · онлайн", "status": ""}, {"id": "e8rlp3x", "subj": "ohsudba", "date": "2026-12-28", "start": "10:10", "end": "11:40", "place": "Практика · ауд. 1502", "status": ""}, {"id": "zntmujp", "subj": "y1ocf6b", "date": "2026-12-28", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 1512", "status": ""}, {"id": "5sqawi8", "subj": "ohsudba", "date": "2026-12-28", "start": "14:00", "end": "15:30", "place": "Семинар+зачёт · ауд. 1502", "status": ""}, {"id": "zy0euf6", "subj": "fihipsi", "date": "2026-12-29", "start": "11:50", "end": "13:20", "place": "Практика · ауд. 3202", "status": ""}, {"id": "48doysg", "subj": "dv71jfy", "date": "2026-12-29", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 3204", "status": ""}, {"id": "0ar64n1", "subj": "6274pvf", "date": "2026-12-18", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 2531", "status": ""}, {"id": "uu3l4r1", "subj": "6274pvf", "date": "2026-12-25", "start": "14:00", "end": "15:30", "place": "Семинар+зачёт · ауд. 2531", "status": ""}, {"id": "ucqm3d9", "subj": "6274pvf", "date": "2026-12-04", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 2531", "status": ""}, {"id": "lex5zij", "subj": "6274pvf", "date": "2026-11-27", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 2531", "status": "sick"}, {"id": "4eqffuw", "subj": "6274pvf", "date": "2026-12-11", "start": "14:00", "end": "15:30", "place": "Практика · ауд. 2531", "status": ""}], "goDays": [], "tg": {"chat": "", "name": ""}}</script>
+<script>
+(function(){
+var S=JSON.parse(document.getElementById('state').textContent);
+try{var ls=localStorage.getItem('study-state');if(ls&&!S.subjects.length&&!S.events.length&&!S.hw.length&&!S.abs.length){S=JSON.parse(ls)}}catch(e){}
+if(!S.lessons)S.lessons=[];
+var tab=(location.hash||'#today').slice(1);
+var calM=new Date();calM.setDate(1);var calSel=null,calSubj='';
+var TABS=[['today','Сегодня'],['cal','Календарь'],['events','Экзамены и КР'],['abs','Пропуски'],['subj','Предметы']];
+var TYPES={exam:'Экзамен',credit:'Зачёт',test:'Контрольная'};
+var art=null,timer=null,RO=true;
+function $(t,a,kids){var e=document.createElement(t);if(a)for(var k in a){if(k==='text')e.textContent=a[k];else if(k.slice(0,2)==='on')e[k]=a[k];else e.setAttribute(k,a[k])}(kids||[]).forEach(function(c){if(c)e.appendChild(c)});return e}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(x<10?'0':'')+x}
+function today(){return iso(new Date())}
+function daysTo(s){var a=new Date(today()+'T00:00'),b=new Date(s+'T00:00');return Math.round((b-a)/864e5)}
+function fmt(s){if(!s)return'';var d=new Date(s+'T00:00');return d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})}
+function subjName(id){var s=S.subjects.find(function(x){return x.id===id});return s?s.name:'—'}
+function rel(s){var n=daysTo(s);if(n<0)return['просрочено '+(-n)+' дн.','bad'];if(n===0)return['сегодня','bad'];if(n===1)return['завтра','warn'];if(n<=7)return['через '+n+' дн.','warn'];return['через '+n+' дн.','']}
+function save(){try{localStorage.setItem('study-state',JSON.stringify(S))}catch(e){}
+clearTimeout(timer);timer=setTimeout(publish,1500)}
+function publish(){if(!art)return;try{var c=document.documentElement.cloneNode(true);c.querySelector('#app').textContent='';c.querySelector('#nav').textContent='';
+c.querySelector('#state').textContent=JSON.stringify(S).replace(/</g,'\\u003c');
+art.publish('<!DOCTYPE html>\n'+c.outerHTML).catch(function(e){if(e&&/not_granted|not_writer/.test(String(e.code||e.message||e))){RO=true;render()}})}catch(e){}}
+function subjSelect(val){var s=$('select');if(!S.subjects.length)s.appendChild($('option',{value:'',text:'(сначала добавь предмет)'}));S.subjects.forEach(function(x){var o=$('option',{value:x.id,text:x.name});if(x.id===val)o.selected=true;s.appendChild(o)});return s}
+function renderNav(){var n=document.getElementById('nav');n.textContent='';TABS.forEach(function(t){n.appendChild($('button',{text:t[1],class:t[0]===tab?'on':'',onclick:function(){tab=t[0];try{location.hash=tab}catch(e){}render()}}))})}
+function stat(n,l){return $('div',{class:'stat'},[$('b',{text:String(n)}),$('span',{text:l,class:'mut'})])}
+function absCount(id){return S.abs.filter(function(a){return a.subj===id}).length+S.lessons.filter(function(l){return l.subj===id&&l.status==='missed'}).length}
+function parseIcs(txt){txt=txt.replace(/\r?\n[ \t]/g,'');var out=[],cur=null;txt.split(/\r?\n/).forEach(function(l){if(l==='BEGIN:VEVENT')cur={};else if(l==='END:VEVENT'){if(cur&&cur.s&&cur.d)out.push(cur);cur=null}else if(cur){var i=l.indexOf(':');if(i<0)return;var k=l.slice(0,i).split(';')[0],v=l.slice(i+1);
+if(k==='SUMMARY')cur.s=v.replace(/\\,/g,',').replace(/\\n/g,' ').trim();else if(k==='LOCATION')cur.p=v.replace(/\\,/g,',');else if(k==='DTSTART'||k==='DTEND'){var m=v.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2}))?/);if(m){var d=m[1]+'-'+m[2]+'-'+m[3],t=m[4]?m[4]+':'+m[5]:'';if(k==='DTSTART'){cur.d=d;cur.st=t}else cur.en=t}}}});return out}
+function importIcs(txt){var ev=parseIcs(txt),n=0;ev.forEach(function(e){var s=S.subjects.find(function(x){return x.name===e.s});if(!s){s={id:uid(),name:e.s,limit:0};S.subjects.push(s)}
+if(!S.lessons.some(function(l){return l.subj===s.id&&l.date===e.d&&l.start===e.st})){S.lessons.push({id:uid(),subj:s.id,date:e.d,start:e.st,end:e.en||'',place:e.p||'',status:''});n++}});save();return n}
+var STC={went:['#22c55e','Была'],missed:['#ef4444','Не была'],sick:['#3b82f6','Больничный'],'':['#9ca3af','Не отмечено']};
+var SH={'Системы управления базами данных':'СУБД','Финансовая математика и ее приложения':'Финмат','Теория вероятностей и математическая статистика':'ТВиМС','Машинное обучение':'Маш. обуч.','Программная инженерия':'Прог. инж.','Современные технологии объектно-ориентированного программирования':'ООП','Сетевые системы и приложения':'Сети','Основы информационной безопасности':'ОИБ','Разработка моделей бизнес-процессов':'Бизнес-проц.','Проектный практикум':'Проектный','Практикум по программированию':'Практикум','Иностранный язык':'Ин. язык'};
+function short(n){if(SH[n])return SH[n];var w=n.split(/\s+/).filter(function(x){return x.length>3});if(n.length<=13)return n;if(w.length>=2)return w.map(function(x){return x[0].toUpperCase()}).join('');return n.slice(0,11)+'…'}
+function dayTint(ls){var st=[];ls.forEach(function(l){if(l.status&&st.indexOf(l.status)<0)st.push(l.status)});if(!st.length)return '';
+function rg(k){var c=STC[k][0];return 'rgba('+parseInt(c.slice(1,3),16)+','+parseInt(c.slice(3,5),16)+','+parseInt(c.slice(5,7),16)+',.22)'}
+if(st.length===1)return 'background:'+rg(st[0])+';border-color:'+STC[st[0]][0];
+return 'background:linear-gradient(135deg,'+st.map(function(k,i){return rg(k)+' '+Math.round(i/st.length*100)+'%,'+rg(k)+' '+Math.round((i+1)/st.length*100)+'%'}).join(',')+')'}
+function isLec(l){return /^Лекция/.test(l.place||'')}
+function isZach(l){return /^Семинар\+зачёт/.test(l.place||'')}
+function recMap(){var M={},t=today();S.subjects.forEach(function(s){var p=s.plan||'unset';
+var ls=S.lessons.filter(function(l){return l.subj===s.id}).sort(function(a,b){return (a.date+a.start)<(b.date+b.start)?-1:1});
+var zd=null;ls.forEach(function(l){if(isZach(l)&&!zd)zd=l.date});
+var went=ls.filter(function(l){return l.status==='went'&&!isLec(l)&&!isZach(l)}).length;var left=p==='n'?Math.max(0,(s.n||0)-went):0;
+ls.forEach(function(l){if(l.date<t||l.status==='sick')return;
+if(isZach(l)){M[l.id]='зачёт';return}
+if(isLec(l))return;
+if(p==='all'){M[l.id]='нужно ходить';return}
+if(p==='n'&&left>0&&!l.status&&(!zd||l.date<zd)){M[l.id]='нужно сходить, '+(s.n-left+1)+' из '+s.n;left--}})});return M}
+function lessonsOf(ds,subj){return S.lessons.filter(function(l){return l.date===ds&&(!subj||l.subj===subj)}).sort(function(a,b){return a.start<b.start?-1:1})}
+function viewCal(){
+var r=$('div');var RM=recMap();var y=calM.getFullYear(),m=calM.getMonth();
+var head=$('div',{class:'card calhead'});
+var top=$('div',{class:'caltop'},[
+$('button',{class:'round',text:'‹',onclick:function(){calM=new Date(y,m-1,1);calSel=null;render()}}),
+$('div',{class:'caltitle',text:calM.toLocaleDateString('ru-RU',{month:'long',year:'numeric'})}),
+$('button',{class:'round',text:'›',onclick:function(){calM=new Date(y,m+1,1);calSel=null;render()}}),
+$('button',{class:'g',text:'Сегодня',style:'margin-left:auto',onclick:function(){calM=new Date();calM.setDate(1);calSel=today();render()}})]);
+head.appendChild(top);
+var chips=$('div',{class:'chips'});
+chips.appendChild($('button',{class:'chip'+(calSubj?'':' on'),text:'Все',onclick:function(){calSubj='';render()}}));
+S.subjects.forEach(function(s){chips.appendChild($('button',{class:'chip'+(calSubj===s.id?' on':''),text:short(s.name),title:s.name,onclick:function(){calSubj=s.id;render()}}))});
+head.appendChild(chips);
+var leg=$('div',{class:'legend'});leg.appendChild($('span',{text:'★ нужно идти'}));leg.appendChild($('span',{},[$('i',{style:'background:#f59e0b'}),document.createTextNode('Зачёт / экзамен')]));['went','missed','sick',''].forEach(function(k){leg.appendChild($('span',{},[$('i',{style:'background:'+STC[k][0]}),document.createTextNode(STC[k][1])]))});
+head.appendChild(leg);r.appendChild(head);
+var g=$('div',{class:'calgrid'});
+['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(function(d){g.appendChild($('div',{class:'dow',text:d}))});
+var off=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),t=today();
+for(var i=0;i<off;i++)g.appendChild($('div',{class:'cell empty'}));
+for(let d=1;d<=dim;d++){var ds=iso(new Date(y,m,d));var wd=(off+d-1)%7;var ls=lessonsOf(ds,calSubj);
+var ex=S.events.filter(function(e){return !e.done&&e.date===ds&&(!calSubj||e.subj===calSubj)});var sty=dayTint(ls);if(ex.length){if(!sty)sty='background:rgba(245,158,11,.25)';sty+=';border:2px solid #f59e0b'}
+var cell=$('div',{style:sty,class:'cell'+(ex.length?' exam':'')+(ds===t?' today':'')+(ds===calSel?' sel':'')+(wd>=5?' we':''),onclick:function(){calSel=ds;render();var p=document.getElementById('daypanel');if(p&&p.scrollIntoView)p.scrollIntoView({block:'nearest',behavior:'smooth'})}},[$('div',{class:'dn',text:String(d)}),ex.length?$('div',{class:'exb',text:ex.map(function(e){return e.type==='exam'?'ЭКЗАМЕН':e.type==='test'?'КР':'ЗАЧЁТ'}).join(' + '),title:ex.map(function(e){return TYPES[e.type]+': '+subjName(e.subj)}).join(', ')}):null]);
+ls.forEach(function(l){cell.appendChild($('div',{class:'les l-'+(l.status||'none'),style:/зачёт/.test(l.place||'')?'border-color:#f59e0b;font-weight:700':'',title:subjName(l.subj)+' '+l.start},[$('b',{text:l.start}),document.createTextNode(' '+(RM[l.id]?'★ ':'')+short(subjName(l.subj)))]))});
+g.appendChild(cell)}
+r.appendChild($('div',{class:'card calwrap'},[g]));
+if(calSel){var dc=$('div',{class:'card',id:'daypanel'},[$('h2',{text:new Date(calSel+'T00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})})]);
+var ds2=lessonsOf(calSel,calSubj);
+S.events.filter(function(e){return !e.done&&e.date===calSel&&(!calSubj||e.subj===calSubj)}).forEach(function(e){dc.appendChild($('div',{class:'exbox',text:'🎯 '+TYPES[e.type]+' — '+subjName(e.subj)+(e.time?' в '+e.time:'')+(e.note?' · '+e.note:'')}))});
+if(ds2.length){var qa=$('div',{class:'row qa',style:'margin-bottom:10px'},[$('span',{class:'mut',text:'Весь день:'})]);[['went','Была'],['missed','Не была'],['','Сброс']].forEach(function(x){qa.appendChild($('button',{class:'chip',style:x[0]?'border-color:'+STC[x[0]][0]:'',text:x[1],onclick:function(){ds2.forEach(function(l){l.status=x[0]});save();render()}}))});dc.appendChild(qa)}
+if(!ds2.length)dc.appendChild($('div',{class:'empty',text:'В этот день пар нет.'}));
+ds2.forEach(function(l){var seg=$('div',{class:'seg'});[['went','Была'],['missed','Не была']].forEach(function(x){seg.appendChild($('button',{class:'s-'+x[0]+(l.status===x[0]?' on':''),text:x[1],onclick:function(){l.status=(l.status===x[0]?'':x[0]);save();render()}}))});
+dc.appendChild($('div',{class:'lcard l-'+(l.status||'none')},[$('div',{class:'ltime'},[$('b',{text:l.start}),$('span',{text:l.end})]),$('div',{class:'t'},[$('div',{text:subjName(l.subj),style:'font-weight:600'}),$('div',{class:'s',text:(l.place||'')+(RM[l.id]?'  ·  ★ '+RM[l.id]:'')})]),seg,$('button',{class:'g',text:'✕',title:'Удалить пару',onclick:function(){S.lessons=S.lessons.filter(function(x){return x!==l});save();render()}})]))});
+var sj=subjSelect(),st=$('input',{type:'time'}),pl=$('input',{placeholder:'Аудитория'});
+dc.appendChild($('details',{class:'add'},[$('summary',{text:'+ Добавить пару вручную'}),$('div',{class:'row',style:'margin-top:8px'},[sj,st,pl,$('button',{class:'b',text:'Добавить',onclick:function(){if(!sj.value)return;S.lessons.push({id:uid(),subj:sj.value,date:calSel,start:st.value,end:'',place:pl.value,status:''});save();render()}})])]));
+r.appendChild(dc)}
+var subs=calSubj?S.subjects.filter(function(s){return s.id===calSubj}):S.subjects;
+var sg=$('div',{class:'statgrid'});
+subs.forEach(function(s){var a=S.lessons.filter(function(l){return l.subj===s.id});var w=a.filter(function(l){return l.status==='went'}).length,mi=a.filter(function(l){return l.status==='missed'}).length,sk=a.filter(function(l){return l.status==='sick'}).length,un=a.length-w-mi-sk;var p=(w+mi)?Math.round(w/(w+mi)*100):null;
+sg.appendChild($('div',{class:'scard'},[$('div',{class:'sn',text:s.name}),$('div',{class:'sp',text:p===null?'—':p+'%'}),$('div',{class:'bar'},[$('i',{style:'width:'+(p||0)+'%'})]),$('div',{class:'sc'},[$('span',{style:'color:#22c55e',text:'● '+w}),$('span',{style:'color:#ef4444',text:'● '+mi}),$('span',{style:'color:#3b82f6',text:'● '+sk}),$('span',{class:'mut',text:'○ '+un})])]))});
+r.appendChild($('div',{class:'card'},[$('h2',{text:calSubj?'Посещаемость: '+subjName(calSubj):'Посещаемость по предметам'}),$('div',{class:'mut',text:'зелёный — была, красный — не была, синий — больничный, серый — не отмечено; больничные не считаются в процент',style:'margin-bottom:10px'}),sg]));
+r.appendChild($('details',{class:'card'},[$('summary',{text:'Загрузить расписание (.ics)',style:'cursor:pointer;font-weight:600'}),$('div',{class:'mut',text:'Экспорт расписания из портала: пары и предметы создадутся сами, повторные пары не дублируются.',style:'margin:8px 0'}),$('input',{type:'file',accept:'.ics',onchange:function(){var f=this.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){importIcs(String(rd.result));calSel=null;render()};rd.readAsText(f)}})]));
+return r}
+
+function viewToday(){
+var r=$('div');var t=today();
+var upc=S.events.filter(function(e){return !e.done&&daysTo(e.date)>=0&&daysTo(e.date)<=14});
+var mi=S.lessons.filter(function(l){return l.status==='missed'}).length,w=S.lessons.filter(function(l){return l.status==='went'}).length;
+r.appendChild($('div',{class:'grid card'},[stat(upc.length,'событий за 2 недели'),stat(mi,'пар пропущено'),stat((w+mi)?Math.round(w/(w+mi)*100)+'%':'—','посещаемость')]));
+var RM=recMap();var tl=lessonsOf(t);var c0=$('div',{class:'card'},[$('h2',{text:'Пары сегодня'})]);
+if(!tl.length)c0.appendChild($('div',{class:'empty',text:'Сегодня пар нет.'}));
+tl.forEach(function(l){var seg=$('div',{class:'seg'});[['went','Была'],['missed','Не была']].forEach(function(x){seg.appendChild($('button',{class:'s-'+x[0]+(l.status===x[0]?' on':''),text:x[1],onclick:function(){l.status=(l.status===x[0]?'':x[0]);save();render()}}))});
+c0.appendChild($('div',{class:'lcard l-'+(l.status||'none')},[$('div',{class:'ltime'},[$('b',{text:l.start}),$('span',{text:l.end})]),$('div',{class:'t'},[$('div',{text:subjName(l.subj),style:'font-weight:600'}),$('div',{class:'s',text:l.place||''}),$('div',{class:'s',style:'color:'+(RM[l.id]?'var(--ok)':'var(--mut)'),text:l.status==='sick'?'больничный':RM[l.id]?'★ идти: '+RM[l.id]:(isLec(l)?'лекция — можно пропустить':'можно пропустить')})]),seg]))});
+r.appendChild(c0);
+var c1=$('div',{class:'card'},[$('h2',{text:'Когда идти в ближайшие 10 дней'})]);var any=false;
+for(var k=0;k<=10;k++){var dd=new Date(t+'T00:00');dd.setDate(dd.getDate()+k);var ds=iso(dd);var rl=lessonsOf(ds).filter(function(l){return RM[l.id]});
+if(rl.length){any=true;c1.appendChild($('div',{class:'item'},[$('div',{class:'t'},[$('div',{text:fmt(ds),style:'font-weight:600'}),$('div',{class:'s',text:rl.map(function(l){return l.start+' '+subjName(l.subj)+' ('+RM[l.id]+')'}).join('  ·  ')})])]))}}
+if(!any)c1.appendChild($('div',{class:'empty',text:'В ближайшие 10 дней идти никуда не нужно.'}));
+r.appendChild(c1);
+var c2=$('div',{class:'card'},[$('h2',{text:'Ближайшие зачёты и контрольные'})]);
+var list=upc.slice().sort(function(a,b){return a.date<b.date?-1:1});
+if(!list.length)c2.appendChild($('div',{class:'empty',text:'В ближайшие 2 недели ничего нет 🎉'}));
+list.forEach(function(e){var q=rel(e.date);c2.appendChild($('div',{class:'item'},[$('div',{class:'t'},[$('div',{text:TYPES[e.type]+' — '+subjName(e.subj)}),$('div',{class:'s',text:fmt(e.date)+(e.time?', '+e.time:'')+(e.note?' · '+e.note:'')})]),$('span',{class:'tag '+q[1],text:q[0]})]))});
+r.appendChild(c2);return r}
+
+function viewEvents(){
+var r=$('div');var c=$('div',{class:'card formcard'},[$('h2',{text:'Добавить экзамен / зачёт / контрольную'})]);
+var type=$('select');Object.keys(TYPES).forEach(function(k){type.appendChild($('option',{value:k,text:TYPES[k]}))});
+var sj=subjSelect(),d=$('input',{type:'date'}),tm=$('input',{type:'time'}),nt=$('input',{placeholder:'Заметка (аудитория, темы)',style:'flex:1;min-width:160px'});
+c.appendChild($('div',{class:'row'},[type,sj,d,tm,nt,$('button',{class:'b',text:'Добавить',onclick:function(){if(!d.value||!sj.value)return;S.events.push({id:uid(),type:type.value,subj:sj.value,date:d.value,time:tm.value,note:nt.value,done:false});save();render()}})]));r.appendChild(c);
+var c2=$('div',{class:'card'},[$('h2',{text:'Все события'})]);
+S.events.slice().sort(function(a,b){return a.date<b.date?-1:1}).forEach(function(e){var q=rel(e.date);
+c2.appendChild($('div',{class:'item'+(e.done?' done':'')},[$('input',{type:'checkbox',onchange:function(){e.done=this.checked;save();render()},checked:e.done?'checked':null}),
+$('div',{class:'t'},[$('div',{text:TYPES[e.type]+' — '+subjName(e.subj)}),$('div',{class:'s',text:fmt(e.date)+(e.time?', '+e.time:'')+(e.note?' · '+e.note:'')})]),
+e.done?null:$('span',{class:'tag '+q[1],text:q[0]}),$('button',{class:'g',text:'✕',onclick:function(){S.events=S.events.filter(function(x){return x!==e});save();render()}})]))});
+if(!S.events.length)c2.appendChild($('div',{class:'empty',text:'Пока пусто.'}));
+r.appendChild(c2);return r}
+
+function viewAbs(){
+var r=$('div');var c=$('div',{class:'card formcard'},[$('h2',{text:'Записать пропуск'})]);
+var sj=subjSelect(),d=$('input',{type:'date',value:today()}),rs=$('select');['без причины','болезнь (справка)','уважительная'].forEach(function(x){rs.appendChild($('option',{text:x}))});
+c.appendChild($('div',{class:'row'},[sj,d,rs,$('button',{class:'b',text:'Добавить',onclick:function(){if(!sj.value||!d.value)return;S.abs.push({id:uid(),subj:sj.value,date:d.value,reason:rs.value});save();render()}})]));r.appendChild(c);
+var c1=$('div',{class:'card'},[$('h2',{text:'По предметам'})]);
+S.subjects.forEach(function(s){var n=absCount(s.id),lim=s.limit||0,pct=lim?Math.min(100,n/lim*100):0;var cls=lim&&n>=lim?'bad':(lim&&n>=lim-1?'warn':'ok');
+var b=$('div',{class:'bar'},[$('i',{style:'width:'+pct+'%;background:var(--'+(cls==='ok'?'ok':cls==='warn'?'warn':'bad')+')'})]);
+c1.appendChild($('div',{style:'padding:6px 0'},[$('div',{class:'row'},[$('b',{text:s.name}),$('span',{class:'tag '+cls,text:n+(lim?' / '+lim:' пропусков')})]),lim?b:null]))});
+if(!S.subjects.length)c1.appendChild($('div',{class:'empty',text:'Добавь предметы во вкладке «Предметы».'}));
+r.appendChild(c1);
+var c2=$('div',{class:'card'},[$('h2',{text:'Журнал'})]);
+S.abs.slice().sort(function(a,b){return a.date<b.date?1:-1}).forEach(function(a){c2.appendChild($('div',{class:'item'},[$('div',{class:'t'},[$('div',{text:subjName(a.subj)}),$('div',{class:'s',text:fmt(a.date)+' · '+a.reason})]),$('button',{class:'g',text:'✕',onclick:function(){S.abs=S.abs.filter(function(x){return x!==a});save();render()}})]))});
+if(!S.abs.length)c2.appendChild($('div',{class:'empty',text:'Пропусков нет.'}));
+r.appendChild(c2);return r}
+
+function viewSubj(){
+var r=$('div');var c=$('div',{class:'card'},[$('h2',{text:'План посещения'}),$('div',{class:'mut',text:'Лекции не планируются. Для практик выбери, сколько ходить — на сайте появятся ★ у нужных пар.'})]);
+S.subjects.forEach(function(s){var sel=$('select',{onchange:function(){s.plan=this.value;if(s.plan==='n'&&!s.n)s.n=2;save();render()}});
+[['unset','не задан'],['all','ходить на все практики'],['n','ходить N раз до зачёта'],['none','не планирую']].forEach(function(o){var op=$('option',{value:o[0],text:o[1]});if((s.plan||'unset')===o[0])op.selected=true;sel.appendChild(op)});
+var row=$('div',{class:'row'},[sel]);
+if(s.plan==='n'){row.appendChild($('input',{type:'number',min:'1',value:String(s.n||2),style:'width:70px',onchange:function(){s.n=parseInt(this.value)||1;save();render()}}))}
+c.appendChild($('div',{class:'item',style:'flex-wrap:wrap'},[$('div',{class:'t'},[$('div',{text:s.name,style:'font-weight:600'}),$('div',{class:'s',text:'лимит пропусков: '+(s.limit||'нет')})]),row,$('button',{class:'g',text:'✕',title:'Удалить предмет',onclick:function(){S.subjects=S.subjects.filter(function(x){return x!==s});S.events=S.events.filter(function(x){return x.subj!==s.id});S.lessons=S.lessons.filter(function(x){return x.subj!==s.id});S.abs=S.abs.filter(function(x){return x.subj!==s.id});save();render()}})]))});
+if(!S.subjects.length)c.appendChild($('div',{class:'empty',text:'Предметов нет — загрузи расписание в календаре.'}));
+r.appendChild(c);
+var c2=$('div',{class:'card formcard'},[$('h2',{text:'Добавить предмет'})]);
+var nm=$('input',{placeholder:'Название',style:'flex:1;min-width:160px'});
+c2.appendChild($('div',{class:'row'},[nm,$('button',{class:'b',text:'Добавить',onclick:function(){if(!nm.value.trim())return;S.subjects.push({id:uid(),name:nm.value.trim(),limit:0});save();render()}})]));r.appendChild(c2);return r}
+
+function digest(){
+var L=['📚 Учёба — '+fmt(today())];
+var tl=lessonsOf(today());L.push('','🎒 Пары сегодня:');if(!tl.length)L.push('— нет');tl.forEach(function(l){L.push('• '+l.start+' '+subjName(l.subj)+(l.place?' ('+l.place+')':''))});
+var ev=S.events.filter(function(e){return !e.done&&daysTo(e.date)>=0&&daysTo(e.date)<=7}).sort(function(a,b){return a.date<b.date?-1:1});
+L.push('','⏰ Ближайшие 7 дней:');if(!ev.length)L.push('— ничего');ev.forEach(function(e){L.push('• '+TYPES[e.type]+' · '+subjName(e.subj)+' · '+fmt(e.date)+(e.time?' '+e.time:''))});
+var w=S.subjects.filter(function(s){return s.limit&&absCount(s.id)>=s.limit-1});
+if(w.length){L.push('','⚠️ Пропуски:');w.forEach(function(s){L.push('• '+s.name+': '+absCount(s.id)+' из '+s.limit)})}
+return L.join('\n')}
+
+function viewTg(){
+var r=$('div');var ta=$('textarea',{readonly:'readonly'});ta.value=digest();
+var msg=$('span',{class:'mut'});
+r.appendChild($('div',{class:'card'},[$('h2',{text:'Сводка для Telegram'}),$('div',{class:'mut',text:'Так будет выглядеть утренняя сводка. Она собирается из твоих данных на этой странице.',style:'margin-bottom:8px'}),ta,
+$('div',{class:'row',style:'margin-top:8px'},[$('button',{class:'b',text:'Скопировать',onclick:function(){try{navigator.clipboard.writeText(ta.value).then(function(){msg.textContent='Скопировано'},function(){ta.select();msg.textContent='Выдели и скопируй вручную'})}catch(e){ta.select();msg.textContent='Выдели и скопируй вручную'}}}),msg])]));
+r.appendChild($('div',{class:'card'},[$('h2',{text:'Автоматическая отправка'}),$('div',{class:'mut',text:'Сама страница в Telegram писать не может (браузер блокирует внешние запросы). Автопуш делается отдельным шагом: бот в Telegram + ежедневная задача, которая читает эту страницу и шлёт сводку. Скажи Claude в чате «настроить Telegram» — он проведёт по шагам.'})]));
+return r}
+
+function render(){renderNav();var a=document.getElementById('app');a.className=RO?'ro':'';a.textContent='';var v={today:viewToday,cal:viewCal,events:viewEvents,abs:viewAbs,subj:viewSubj,tg:viewTg}[tab]||viewToday;a.appendChild(v())}
+render();
+try{window.claude&&window.claude.use('artifact').then(function(x){art=x;if(x){RO=false;render()}}).catch(function(){})}catch(e){}
+})();
+</script>
+</body>
+</html>
